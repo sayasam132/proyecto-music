@@ -1,0 +1,106 @@
+<script>
+  import { createEventDispatcher } from 'svelte';
+
+  export let selectedPlan = '';
+
+  let cardNumber = '';
+  let cardName = '';
+  let expiryDate = '';
+  let cvv = '';
+  let isValid = false;
+  let errorMessage = '';
+
+  const dispatch = createEventDispatcher();
+
+  function validateCard() {
+    // Implementación simple del algoritmo de Luhn
+    let sum = 0;
+    let isEven = false;
+    for (let i = cardNumber.length - 1; i >= 0; i--) {
+      let digit = parseInt(cardNumber.charAt(i), 10);
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+      sum += digit;
+      isEven = !isEven;
+    }
+    return (sum % 10) === 0;
+  }
+
+  function handleSubmit() {
+    if (validateCard()) {
+      isValid = true;
+      errorMessage = '';
+      dispatch('payment', { plan: selectedPlan, cardNumber });
+    } else {
+      isValid = false;
+      errorMessage = 'Número de tarjeta inválido';
+    }
+  }
+</script>
+
+<div class="min-h-screen bg-gray-950 text-white p-6">
+  <h2 class="text-2xl font-bold mb-6 text-center">Pago para {selectedPlan}</h2>
+  
+  <form on:submit|preventDefault={handleSubmit} class="max-w-md mx-auto space-y-4">
+    <div>
+      <label for="cardNumber" class="block mb-2">Número de Tarjeta</label>
+      <input
+        id="cardNumber"
+        bind:value={cardNumber}
+        placeholder="1234 5678 9012 3456"
+        class="w-full p-2 rounded bg-gray-800 text-white"
+        required
+      />
+    </div>
+    
+    <div>
+      <label for="cardName" class="block mb-2">Nombre en la Tarjeta</label>
+      <input
+        id="cardName"
+        bind:value={cardName}
+        placeholder="John Doe"
+        class="w-full p-2 rounded bg-gray-800 text-white"
+        required
+      />
+    </div>
+    
+    <div class="flex space-x-4">
+      <div class="flex-1">
+        <label for="expiryDate" class="block mb-2">Fecha de Expiración</label>
+        <input
+          id="expiryDate"
+          bind:value={expiryDate}
+          placeholder="MM/YY"
+          class="w-full p-2 rounded bg-gray-800 text-white"
+          required
+        />
+      </div>
+      <div class="flex-1">
+        <label for="cvv" class="block mb-2">CVV</label>
+        <input
+          id="cvv"
+          bind:value={cvv}
+          placeholder="123"
+          class="w-full p-2 rounded bg-gray-800 text-white"
+          required
+        />
+      </div>
+    </div>
+    
+    <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+      Pagar
+    </button>
+    
+    {#if errorMessage}
+      <p class="text-red-500">{errorMessage}</p>
+    {/if}
+    
+    {#if isValid}
+      <p class="text-green-500">Pago procesado con éxito</p>
+    {/if}
+  </form>
+</div>
